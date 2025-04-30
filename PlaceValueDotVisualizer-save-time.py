@@ -54,7 +54,8 @@ def draw_number(ax, number_str):
             circle = patches.Circle((x, y), dot_radius, color='black')
             ax.add_patch(circle)
 
-    plt.draw()
+    st.pyplot(fig)
+
 
 def main():
     print("Welcome to the Place Value Dot Visualizer!")
