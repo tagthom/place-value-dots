@@ -1,27 +1,20 @@
-# PlaceValueDotVisualizer-save-time.py
-
+import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import matplotlib.widgets as widgets
-import random
-import os
 import math
-import sys
 from datetime import datetime
 
-def draw_number(ax, number_str):
-    ax.clear()
+def draw_number(number_str):
+    fig, ax = plt.subplots(figsize=(10, 4))
     ax.set_xlim(0, 4)
     ax.set_ylim(0, 1)
 
-    # Define the green rectangle (full background)
     ax.add_patch(
         patches.Rectangle(
             (0, 0), 4, 1, linewidth=2, edgecolor='green', facecolor='lightgreen'
         )
     )
 
-    # Draw the divisions (for 4 place values)
     for i in range(1, 4):
         ax.plot([i, i], [0, 1], color='green', linewidth=2)
 
@@ -54,84 +47,32 @@ def draw_number(ax, number_str):
             circle = patches.Circle((x, y), dot_radius, color='black')
             ax.add_patch(circle)
 
-    plt.draw()
+    return fig
 
 def main():
-    print("Welcome to the Place Value Dot Visualizer!")
+    st.title("Place Value Dot Visualizer")
+    st.write("Enter a number (up to 4 digits) to visualize its place value with dots.")
 
-    fig, ax = plt.subplots(figsize=(10, 4))
-    plt.subplots_adjust(bottom=0.45)
+    number_input = st.text_input("Enter number:", "")
+    filename_input = st.text_input("Custom filename (optional):", "my_image")
 
-    draw_number(ax, "0")
+    if st.button("Draw"):
+        if number_input.isdigit() and len(number_input) <= 4:
+            fig = draw_number(number_input)
+            st.pyplot(fig)
+        else:
+            st.error("Invalid input. Please enter a numeral with 1 to 4 digits.")
 
-    axbox = plt.axes([0.1, 0.25, 0.3, 0.075])
-    text_box = widgets.TextBox(axbox, 'Enter number: ', initial="")
-
-    namebox_ax = plt.axes([0.5, 0.25, 0.3, 0.075])
-    name_box = widgets.TextBox(namebox_ax, 'Filename: ', initial="my_image")
-
-    reset_ax = plt.axes([0.1, 0.1, 0.1, 0.075])
-    reset_button = widgets.Button(reset_ax, 'Reset')
-
-    save_ax = plt.axes([0.25, 0.1, 0.1, 0.075])
-    save_button = widgets.Button(save_ax, 'Save')
-
-    exit_ax = plt.axes([0.4, 0.1, 0.1, 0.075])
-    exit_button = widgets.Button(exit_ax, 'Exit')
-
-    current_number = ["0"]
-
-    def submit(text):
-        if text.lower() == 'stop':
-            print("Goodbye!")
-            plt.close(fig)
-            sys.exit()
-
-        if not text.isdigit() or len(text) > 4:
-            print("Invalid input. Please enter a numeral with 1 to 4 digits.")
-            return
-
-        current_number[0] = text
-        draw_number(ax, text)
-
-    def reset(event):
-        text_box.set_val("")
-        draw_number(ax, "0")
-
-    def save(event):
-        try:
+    if st.button("Save Image"):
+        if number_input.isdigit() and len(number_input) <= 4:
+            fig = draw_number(number_input)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = name_box.text.strip()
-            if not filename:
-                filename = "place_value_dots"
+            filename = filename_input.strip() or "place_value_dots"
             full_filename = f"{filename}_{timestamp}.jpg"
             fig.savefig(full_filename, bbox_inches='tight', format='jpg')
-            print(f"Saved current figure to {full_filename}")
-        except Exception as e:
-            print(f"Could not save the figure due to an error: {e}")
-
-    def exit_program(event):
-        print("Exiting program.")
-        plt.close(fig)
-        sys.exit()
-
-    text_box.on_submit(submit)
-    reset_button.on_clicked(reset)
-    save_button.on_clicked(save)
-    exit_button.on_clicked(exit_program)
-
-    plt.show()
+            st.success(f"Image saved as {full_filename}")
+        else:
+            st.error("Enter a valid number first to save.")
 
 if __name__ == "__main__":
     main()
-
-# Test cases to manually verify:
-# Input: 7 (should show 7 dots neatly arranged in ones box)
-# Input: 45 (should show 4 dots in tens box, 5 dots in ones box)
-# Input: 306 (should show 3 dots in hundreds box, 6 dots in ones box)
-# Input: 1203 (should show 1 dot in thousands box, 2 dots in hundreds box, 0 in tens, 3 dots in ones box)
-# Input: stop (should exit cleanly)
-# Additional test cases:
-# Input: 0 (should show no dots)
-# Input: 1000 (should show 1 dot in thousands box)
-# Input: 9 (should show 9 dots in ones box)
